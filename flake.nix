@@ -28,7 +28,9 @@
               openssl
               maven
               inputs.mavenix.packages.${system}.mavenix-cli
+              
             ]);
+            MAVEN_OPTS = "-Dmaven.repo.local=${(pkgs.callPackage ./encrypt { inherit jdk; jre = jdk; }).fetchedMavenDeps}";
           };
           default = d;
         };
