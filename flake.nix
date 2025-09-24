@@ -3,10 +3,6 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    mavenix = {
-      url = "github:nix-community/mavenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
   outputs = {...} @ inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
@@ -18,7 +14,10 @@
           };
         };
         mv = pkgs.callPackage inputs.mavenix {};
-        jdk = pkgs.jdk24;
+        jdk = pkgs.openjdk.override {
+          enableJavaFX = true;
+          openjfx_jdk = pkgs.openjfx.override { withWebKit = true; };
+        };
       in {
         devShells = rec {
           d = pkgs.mkShell {
@@ -27,15 +26,14 @@
               podman
               openssl
               maven
-              inputs.mavenix.packages.${system}.mavenix-cli
               
             ]);
-            MAVEN_OPTS = "-Dmaven.repo.local=${(pkgs.callPackage ./encrypt { inherit jdk; jre = jdk; }).fetchedMavenDeps}";
+            MAVEN_OPTS = "-Dmaven.repo.local=${(pkgs.callPackage ./PasswordManager { inherit jdk; jre = jdk; }).fetchedMavenDeps}";
           };
           default = d;
         };
         packages = rec {
-          e = pkgs.callPackage ./encrypt { inherit jdk; jre = jdk; };
+          e = pkgs.callPackage ./PasswordManager { inherit jdk; jre = jdk; };
           default = e;
         };
         formatter = let
