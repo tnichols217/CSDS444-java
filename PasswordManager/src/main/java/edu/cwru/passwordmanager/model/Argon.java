@@ -45,7 +45,7 @@ public class Argon {
         Argon2BytesGenerator generator = new Argon2BytesGenerator();
         generator.init(builder.build());
 
-        byte[] key = new byte[64];
+        byte[] key = new byte[32];
         generator.generateBytes(password.toCharArray(), key, 0, key.length);
 
         return key;

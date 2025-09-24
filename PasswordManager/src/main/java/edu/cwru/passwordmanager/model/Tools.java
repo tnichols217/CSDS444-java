@@ -27,6 +27,7 @@ public class Tools {
 
         Arrays.fill(padded, (byte) ' ');
         System.arraycopy(lineBytes, 0, padded, 0, lineBytes.length);
+        padded[size - 1] = (byte) '\n';
 
         return padded;
     }

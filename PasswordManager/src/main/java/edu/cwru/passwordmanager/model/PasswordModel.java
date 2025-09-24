@@ -31,10 +31,11 @@ public class PasswordModel {
     private boolean loadPasswords(String password) throws IOException{
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(passwordFile))) {
             // Read and parse the first line (Argon2 hash)
-            String argonHash = reader.readLine();
+            String argonHash = reader.readLine().trim();
             if (argonHash == null || argonHash.isEmpty()) {
                 throw new IOException("Password file is empty or corrupted (no Argon hash).");
             }
+
             this.argonHash = argonHash;
 
             if (!Argon.checkArgonString(argonHash, password)) return false;
@@ -72,6 +73,7 @@ public class PasswordModel {
     }
 
     private String generatePasswordLine(Password password) throws Exception {
+        if (password.tag == Password.Tag.EMPTY) return "";
         String line = String.format("%s%s%s", password.getLabel(), separator, aes.encryptString(password.getPassword()));
         return line;
     }
@@ -83,6 +85,7 @@ public class PasswordModel {
                 generatePasswordLine(passwords.get(index));
             Tools.writeFile(passwordFile, line, (index == -1) ? -1 : index + 1, LINE_SIZE);
         } catch (Exception e) {
+            System.err.println(e);
             return false;
         }
         return true;
@@ -108,6 +111,7 @@ public class PasswordModel {
         String argonHash = argon.makeArgonString(passwordFileSalt, passwordHash);
 
         Tools.writeFile(passwordFile, argonHash, 0, LINE_SIZE);
+        loadPasswords(password);
     }
 
     public boolean verifyPassword(String password) {
@@ -135,7 +139,7 @@ public class PasswordModel {
         if (!status) throw new Exception("Could not write password");
     }
 
-    public void addPassword(Password password) {
+    public int addPassword(Password password) {
         int emptyIndexOpt = IntStream.range(0, passwords.size())
             .filter(i -> passwords.get(i).tag == Password.Tag.EMPTY)
             .findFirst()
@@ -147,5 +151,6 @@ public class PasswordModel {
             passwords.set(emptyIndexOpt, password);
         }
         writePasswordLine(emptyIndexOpt);
+        return emptyIndexOpt;
     }
 }
