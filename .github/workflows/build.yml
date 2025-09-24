@@ -20,4 +20,4 @@ jobs:
           nix build .#CI
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "*"
+          artifacts: "result/*"
