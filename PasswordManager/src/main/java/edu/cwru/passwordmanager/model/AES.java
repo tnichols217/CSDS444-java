@@ -21,7 +21,7 @@ public class AES {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] decrypted = cipher.doFinal(encryptedData);
-        return new String(decrypted);
+        return new String(decrypted).trim();
     }
 
     public String encryptString(String data) throws Exception {

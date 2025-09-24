@@ -1,7 +1,7 @@
 package edu.cwru.passwordmanager;
 
 import atlantafx.base.theme.PrimerDark;
-import atlantafx.base.theme.PrimerLight;
+// import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,7 +14,6 @@ public class PasswordApplication extends Application {
     static Stage primaryStage = null;
     @Override
     public void start(Stage stage) throws IOException {
-        // TODO: Select Preferred
         //  Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
 

@@ -3,3 +3,5 @@ result
 out
 *.tmp
 target
+passwords.txt
+target

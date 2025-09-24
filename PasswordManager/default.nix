@@ -5,7 +5,7 @@ maven.buildMavenPackage rec {
 
   src = ./.;
 
-  mvnHash = "sha256-AiMj3En9qzzaJVbxEoE4GAnm941HrXmK12YlU1fyNZw=";
+  mvnHash = "sha256-3V80IBZvVweIJjNoutor94Bpu4t/j0P6aG1YO7JEC0k=";
   mvnJdk = jdk;
 
   nativeBuildInputs = [ makeWrapper ];

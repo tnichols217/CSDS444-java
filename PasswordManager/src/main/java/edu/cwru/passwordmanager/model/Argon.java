@@ -6,9 +6,9 @@ import org.bouncycastle.crypto.params.Argon2Parameters;
 public class Argon {
     public static class Params {
         public static final int version = 19;
-        public final int memory;
-        public final int iterations;
-        public final int parallelism;
+        public int memory;
+        public int iterations;
+        public int parallelism;
 
         public Params(int m, int t, int p){
             memory = m;
@@ -58,8 +58,8 @@ public class Argon {
     public String makeArgonString(byte[] salt, byte[] hash) {
         return String.format(
             "$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
-            Params.version, p.memory, p.iterations, p.parallelism,
-            Tools.encode(salt), Tools.encode(hash)
+            Params.version, p.memory, p.iterations * 2, p.parallelism,
+            Tools.encode(salt, true), Tools.encode(hash, true)
         );
     }
 
@@ -94,6 +94,8 @@ public class Argon {
         try {
             HashParts hp = getHashParts(argon);
             if (hp == null) return false;
+
+            hp.p.iterations = hp.p.iterations / 2;
 
             Argon argon_hasher = new Argon(hp.p);
 

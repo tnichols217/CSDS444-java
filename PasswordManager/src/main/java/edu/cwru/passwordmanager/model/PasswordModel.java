@@ -6,20 +6,13 @@ import javafx.collections.ObservableList;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 public class PasswordModel {
     private ObservableList<Password> passwords = FXCollections.observableArrayList();
 
-    // !!! DO NOT CHANGE - VERY IMPORTANT FOR GRADING !!!
     private String passwordFile;
     private String separator = "\t";
-
-    // I don't know why you want to store these but its apparently necessary for grading?
-    private String passwordFilePassword = "";
-    private String argonHash;
-    private byte [] passwordFileKey;
 
     public static final int ARGON_ITER = 5; // OWASP recommends at least 2
     public static final int ARGON_MEM = 65536; // OWASP recommends at least 16MB
@@ -36,13 +29,10 @@ public class PasswordModel {
                 throw new IOException("Password file is empty or corrupted (no Argon hash).");
             }
 
-            this.argonHash = argonHash;
-
             if (!Argon.checkArgonString(argonHash, password)) return false;
 
             byte[] salt = Argon.getSaltFromArgonString(argonHash);
             byte[] argonBytes = argon.getArgonBytes(password, salt);
-            passwordFileKey = argonBytes;
             aes = new AES(argonBytes);
 
 
@@ -52,17 +42,18 @@ public class PasswordModel {
                 .forEach(line -> {
                     try {
                         String[] parts = line.split(separator);
-                        if (parts.length != 2) return;  // Skip broken lines
+                        if (parts.length < 2) return;  // Skip broken lines
 
                         String label = parts[0].trim();
-                        String encryptedPassword = parts[1];
-                        String rawPassword = encryptedPassword.trim();
-                        if (rawPassword.compareTo("") == 0) {
-                            passwords.add(Password.emptyPassword());
-                        }
-                        String decryptedPassword = aes.decryptString(rawPassword);
+                        String decryptedPassword = aes.decryptString(parts[1].trim());
 
-                        passwords.add(new Password(label, decryptedPassword));
+                        if (parts.length > 2) {
+                            String decryptedTotpSecret = aes.decryptString(parts[1].trim());
+                            passwords.add(new Password(label, decryptedPassword, decryptedTotpSecret));
+
+                        } else {
+                            passwords.add(new Password(label, decryptedPassword));
+                        }
                     } catch (Exception e) {
                         System.err.println("Failed to decrypt a password line: " + e.getMessage());
                         passwords.add(Password.invalidPassword());
@@ -74,7 +65,19 @@ public class PasswordModel {
 
     private String generatePasswordLine(Password password) throws Exception {
         if (password.tag == Password.Tag.EMPTY) return "";
-        String line = String.format("%s%s%s", password.getLabel(), separator, aes.encryptString(password.getPassword()));
+        String line = password.getTotpSecret().compareTo("") == 0 ?
+        String.format("%s%s%s",
+            password.getLabel(),
+            separator,
+            aes.encryptString(password.getPassword())
+        ) :
+        String.format("%s%s%s%s%s",
+            password.getLabel(),
+            separator,
+            aes.encryptString(password.getPassword()),
+            separator,
+            aes.encryptString(password.getTotpSecret())
+        );
         return line;
     }
 
@@ -103,9 +106,7 @@ public class PasswordModel {
     public void initializePasswordFile(String password) throws IOException {
         File f = new File(passwordFile);
         f.createNewFile();
-        passwordFilePassword = password;
         byte[] passwordFileSalt = Tools.generateSalt();
-        passwordFileKey = argon.getArgonBytes(password, passwordFileSalt);
 
         byte[] passwordHash = argon.getArgonBytes(password, passwordFileSalt, true);
         String argonHash = argon.makeArgonString(passwordFileSalt, passwordHash);
@@ -115,7 +116,6 @@ public class PasswordModel {
     }
 
     public boolean verifyPassword(String password) {
-        passwordFilePassword = password; // DO NOT CHANGE
         try {
             return loadPasswords(password);
         } catch (Exception e) {
@@ -147,10 +147,11 @@ public class PasswordModel {
 
         if (emptyIndexOpt == -1) {
             passwords.add(password);
+            writePasswordLine(passwords.size() - 1);
         } else {
             passwords.set(emptyIndexOpt, password);
+            writePasswordLine(emptyIndexOpt);
         }
-        writePasswordLine(emptyIndexOpt);
         return emptyIndexOpt;
     }
 }

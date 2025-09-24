@@ -13,12 +13,25 @@ public class Tools {
         return salt;
     }
 
+    public static String encode(byte[] bytes, boolean noPad) {
+        String encoded = Base64.getEncoder().encodeToString(bytes);
+        if (noPad) {
+            encoded = encoded.replace("=", "");
+        }
+        return encoded;
+    }
+
     public static String encode(byte[] bytes) {
-        return Base64.getEncoder().encodeToString(bytes);
+        return encode(bytes, false);
     }
 
     public static byte[] decode(String string) {
-        return Base64.getDecoder().decode(string);
+        int paddingNeeded = (4 - (string.length() % 4)) % 4;
+        StringBuilder sb = new StringBuilder(string);
+        for (int i = 0; i < paddingNeeded; i++) {
+            sb.append('=');
+        }
+        return Base64.getDecoder().decode(sb.toString());
     }
 
     public static byte[] padString(String string, int size) {

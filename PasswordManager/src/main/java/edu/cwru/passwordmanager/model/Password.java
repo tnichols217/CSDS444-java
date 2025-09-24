@@ -9,17 +9,29 @@ public class Password {
     public final Tag tag;
     private String label;
     private String password;
+    private TOTP totp;
+    private String totpSecret;
 
     public Password(String label, String password, Tag tag) {
         this.tag = tag;
         this.label = label;
         this.password = password;
+        this.totpSecret = "";
     }
 
     public Password(String label, String password) {
         tag = Tag.VALID;
         this.label = label;
         this.password = password;
+        this.totpSecret = "";
+    }
+
+    public Password(String label, String password, String TotpSecret) {
+        tag = Tag.VALID;
+        this.label = label;
+        this.password = password;
+        this.totpSecret = TotpSecret;
+        this.totp = new TOTP(TotpSecret);
     }
 
     @Override
@@ -41,6 +53,23 @@ public class Password {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTOTP() {
+        try {
+            return totp.getCode();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getTotpSecret() {
+        return totpSecret;
+    }
+
+    public void setTOTP(String TotpSecret) {
+        this.totpSecret = TotpSecret;
+        this.totp = new TOTP(TotpSecret);
     }
 
     public static Password invalidPassword() {

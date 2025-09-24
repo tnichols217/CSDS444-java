@@ -64,6 +64,11 @@
       <artifactId>bcprov-jdk15to18</artifactId>
       <version>1.82</version>
     </dependency>
+    <dependency>
+      <groupId>io.github.kamilszewc</groupId>
+      <artifactId>totp</artifactId>
+      <version>6.1</version>
+  </dependency>
   </dependencies>
 
   <build>
