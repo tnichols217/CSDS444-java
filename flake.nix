@@ -3,6 +3,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    appimage.url = "github:ralismark/nix-appimage";
   };
   outputs = {...} @ inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
@@ -33,8 +34,10 @@
           default = d;
         };
         packages = rec {
-          e = pkgs.callPackage ./PasswordManager { inherit jdk; jre = jdk; };
-          default = e;
+          jar = pkgs.callPackage ./PasswordManager { inherit jdk; jre = jdk; };
+          appimage = inputs.appimage.lib.${system}.mkAppImage { program = pkgs.lib.getExe jar; };
+          CI = pkgs.callPackage ./nix/CI.nix { inherit jar appimage; };
+          default = jar;
         };
         formatter = let
           treefmtconfig = inputs.treefmt-nix.lib.evalModule pkgs {

@@ -19,4 +19,6 @@ maven.buildMavenPackage rec {
     makeWrapper ${jre}/bin/java $out/bin/${pname} \
       --add-flags "-jar $out/share/${pname}/${pname}.jar"
   '';
+
+  meta.mainProgram = "PasswordManager";
 }
